@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import authRoutes from "./routes/authRoutes";
 
 const app = express();
 
@@ -9,8 +10,10 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.json({
-    mensagem: "OngAdocaoAPI funcionando!"
+    mensagem: "OngAdocaoAPI funcionando!",
   });
 });
+
+app.use("/auth", authRoutes);
 
 export default app;
