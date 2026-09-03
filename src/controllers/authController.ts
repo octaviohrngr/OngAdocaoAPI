@@ -8,7 +8,7 @@ export const register = async (
   res: Response
 ): Promise<Response> => {
   try {
-    const { nome, email, senha } = req.body;
+    const { nome, email, senha } = req.body ?? {};
 
     if (!nome || !email || !senha) {
       return res.status(400).json({
