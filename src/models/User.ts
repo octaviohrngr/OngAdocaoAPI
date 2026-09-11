@@ -3,7 +3,7 @@ import { IUser } from "../interfaces/IUser";
 
 export interface IUserDocument extends IUser, Document {}
 
-const userSchema = new Schema<IUserDocument>(
+const UserSchema = new Schema<IUserDocument>(
   {
     nome: {
       type: String,
@@ -19,8 +19,20 @@ const userSchema = new Schema<IUserDocument>(
       trim: true,
     },
 
+    telefone: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     senha: {
       type: String,
+      required: true,
+    },
+
+    tipo: {
+      type: String,
+      enum: ["admin", "adotante"],
       required: true,
     },
   },
@@ -29,4 +41,4 @@ const userSchema = new Schema<IUserDocument>(
   }
 );
 
-export const User = mongoose.model<IUserDocument>("User", userSchema);
+export default mongoose.model<IUserDocument>("User", UserSchema);
