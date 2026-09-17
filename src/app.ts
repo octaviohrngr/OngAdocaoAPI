@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import authRoutes from "./routes/userRoutes";
+import userRoutes from "./routes/userRoutes";
 
 const app = express();
 
@@ -14,6 +14,6 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/usuarios", authRoutes);
+app.use("/usuarios", userRoutes);
 
 export default app;

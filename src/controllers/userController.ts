@@ -2,104 +2,253 @@ import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/User";
 
-export async function criarAdmin(
+
+export async function criarUsuario(
   req: Request,
   res: Response
 ): Promise<Response> {
   try {
-    const { nome, email, telefone } = req.body ?? {};
+    const {
+      nome,
+      email,
+      telefone,
+      senha,
+      tipo,
+    } = req.body;
 
-    if (!nome || !email || !telefone) {
+    if (
+      !nome ||
+      !email ||
+      !telefone ||
+      !senha ||
+      !tipo
+    ) {
       return res.status(400).json({
-        mensagem: "Nome, email e telefone são obrigatórios.",
+        mensagem:
+          "Nome, email, telefone, senha e tipo são obrigatórios.",
       });
     }
 
-    const usuarioExistente = await User.findOne({ email });
+    if (
+      tipo !== "admin" &&
+      tipo !== "adotante"
+    ) {
+      return res.status(400).json({
+        mensagem:
+          "O tipo deve ser admin ou adotante.",
+      });
+    }
+
+    const usuarioExistente = await User.findOne({
+      email,
+    });
 
     if (usuarioExistente) {
       return res.status(409).json({
-        mensagem: "Já existe um usuário com este email.",
+        mensagem:
+          "Já existe um usuário com este email.",
       });
     }
 
-    const senhaPadrao = "Admin@123";
+    const senhaCriptografada = await bcrypt.hash(
+      senha,
+      10
+    );
 
-    const senhaCriptografada = await bcrypt.hash(senhaPadrao, 10);
-
-    const admin = await User.create({
+    const usuario = await User.create({
       nome,
       email,
       telefone,
       senha: senhaCriptografada,
-      tipo: "admin",
+      tipo,
     });
 
     return res.status(201).json({
-      mensagem: "Administrador criado com sucesso.",
-      admin: {
-        id: admin._id,
-        nome: admin.nome,
-        email: admin.email,
-        telefone: admin.telefone,
-        tipo: admin.tipo,
+      mensagem: "Usuário criado com sucesso.",
+      usuario: {
+        id: usuario._id,
+        nome: usuario.nome,
+        email: usuario.email,
+        telefone: usuario.telefone,
+        tipo: usuario.tipo,
       },
     });
   } catch (error) {
     console.error(error);
 
     return res.status(500).json({
-      mensagem: "Erro ao criar administrador.",
+      mensagem: "Erro ao criar usuário.",
     });
   }
 }
 
-export async function criarAdotante(
+
+export async function listarUsuarios(
   req: Request,
   res: Response
 ): Promise<Response> {
   try {
-    const { nome, email, telefone, senha } = req.body;
+    const usuarios = await User.find().select(
+      "-senha"
+    );
 
-    if (!nome || !email || !telefone || !senha) {
-      return res.status(400).json({
-        mensagem: "Nome, email, telefone e senha são obrigatórios.",
+    return res.status(200).json(usuarios);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      mensagem: "Erro ao consultar usuários.",
+    });
+  }
+}
+
+
+
+export async function buscarUsuario(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const { id } = req.params;
+
+    const usuario = await User.findById(id).select(
+      "-senha"
+    );
+
+    if (!usuario) {
+      return res.status(404).json({
+        mensagem: "Usuário não encontrado.",
       });
     }
 
-    const usuarioExistente = await User.findOne({ email });
+    return res.status(200).json(usuario);
+  } catch (error) {
+    console.error(error);
 
-    if (usuarioExistente) {
-      return res.status(409).json({
-        mensagem: "Já existe um usuário com este email.",
+    return res.status(500).json({
+      mensagem: "Erro ao consultar usuário.",
+    });
+  }
+}
+
+
+export async function atualizarUsuario(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const { id } = req.params;
+
+    const usuario = await User.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({
+        mensagem: "Usuário não encontrado.",
       });
     }
 
-    const senhaCriptografada = await bcrypt.hash(senha, 10);
-
-    const adotante = await User.create({
+    const {
       nome,
       email,
       telefone,
-      senha: senhaCriptografada,
-      tipo: "adotante",
-    });
+      senha,
+      tipo,
+    } = req.body;
 
-    return res.status(201).json({
-      mensagem: "Adotante criado com sucesso.",
-      adotante: {
-        id: adotante._id,
-        nome: adotante.nome,
-        email: adotante.email,
-        telefone: adotante.telefone,
-        tipo: adotante.tipo,
+    if (email && email !== usuario.email) {
+      const emailExistente = await User.findOne({
+        email,
+      });
+
+      if (emailExistente) {
+        return res.status(409).json({
+          mensagem:
+            "Este email já está sendo utilizado.",
+        });
+      }
+
+      usuario.email = email;
+    }
+
+    if (nome) {
+      usuario.nome = nome;
+    }
+
+    if (telefone) {
+      usuario.telefone = telefone;
+    }
+
+    if (senha) {
+      usuario.senha = await bcrypt.hash(
+        senha,
+        10
+      );
+    }
+
+    if (tipo) {
+      if (
+        tipo !== "admin" &&
+        tipo !== "adotante"
+      ) {
+        return res.status(400).json({
+          mensagem:
+            "O tipo deve ser admin ou adotante.",
+        });
+      }
+
+      usuario.tipo = tipo;
+    }
+
+    await usuario.save();
+
+    return res.status(200).json({
+      mensagem:
+        "Usuário atualizado com sucesso.",
+      usuario: {
+        id: usuario._id,
+        nome: usuario.nome,
+        email: usuario.email,
+        telefone: usuario.telefone,
+        tipo: usuario.tipo,
       },
     });
   } catch (error) {
     console.error(error);
 
     return res.status(500).json({
-      mensagem: "Erro ao criar adotante.",
+      mensagem: "Erro ao atualizar usuário.",
+    });
+  }
+}
+
+
+
+export async function excluirUsuario(
+  req: Request,
+  res: Response
+): Promise<Response> {
+  try {
+    const { id } = req.params;
+
+    const usuario = await User.findById(id);
+
+    if (!usuario) {
+      return res.status(404).json({
+        mensagem: "Usuário não encontrado.",
+      });
+    }
+
+    await User.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      mensagem:
+        "Usuário excluído com sucesso.",
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      mensagem: "Erro ao excluir usuário.",
     });
   }
 }
