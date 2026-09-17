@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import userRoutes from "./routes/userRoutes";
+import animalRoutes from "./routes/animalRoutes";
 
 const app = express();
 
@@ -15,5 +16,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/usuarios", userRoutes);
+
+app.use("/animais", animalRoutes);
 
 export default app;
