@@ -1,39 +1,46 @@
 import { Router } from "express";
 
 import {
-  criarUsuario,
-  listarUsuarios,
-  buscarUsuario,
-  atualizarUsuario,
-  excluirUsuario,
-} from "../controllers/userController";
-
+  criarAnimal,
+  listarAnimais,
+  buscarAnimal,
+  atualizarAnimal,
+  excluirAnimal,
+} from "../controllers/animalController";
 
 const router = Router();
 
+
+
 router.post(
   "/",
-  criarUsuario
+  criarAnimal
 );
+
 
 router.get(
   "/",
-  listarUsuarios
+  listarAnimais
 );
+
+
 
 router.get(
   "/:id",
-  buscarUsuario
+  buscarAnimal
 );
+
 
 router.put(
   "/:id",
-  atualizarUsuario
+  atualizarAnimal
 );
+
+
 
 router.delete(
   "/:id",
-  excluirUsuario
+  excluirAnimal
 );
 
 export default router;
