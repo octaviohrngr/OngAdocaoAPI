@@ -1,7 +1,10 @@
 import express from "express";
 import cors from "cors";
+import path from "path";
 import userRoutes from "./routes/userRoutes";
-import animalRoutes from "./routes/animalRoutes";
+import authRoutes from "./routes/authRoutes";
+import animalRoutes from "./routes/animalRoutes"; 
+import eventoRoutes from "./routes/eventoRoutes";
 
 const app = express();
 
@@ -15,8 +18,22 @@ app.get("/", (req, res) => {
   });
 });
 
+
+app.use("/auth", authRoutes);
+
 app.use("/usuarios", userRoutes);
 
 app.use("/animais", animalRoutes);
+
+
+
+
+app.use(
+  "/uploads",
+  express.static(path.resolve("uploads"))
+);
+
+app.use("/eventos", eventoRoutes);
+
 
 export default app;
