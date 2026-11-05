@@ -1,4 +1,5 @@
 import { Router } from "express";
+import uploadEvento from "../middlewares/uploadEvento";
 
 import {
   criarEvento,
@@ -18,6 +19,7 @@ router.post(
   "/",
   authMiddleware,
   adminMiddleware,
+  uploadEvento.single("foto"),
   criarEvento
 );
 
@@ -38,6 +40,7 @@ router.get(
 
 router.put(
   "/:id",
+  uploadEvento.single("foto"),
   authMiddleware,
   adminMiddleware,
   atualizarEvento

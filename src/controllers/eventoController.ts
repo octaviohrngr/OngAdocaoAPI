@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Evento from "../models/Evento";
 
 
+
 export async function criarEvento(
   req: Request,
   res: Response
@@ -28,11 +29,18 @@ export async function criarEvento(
       });
     }
 
+    if (!req.file) {
+      return res.status(400).json({
+        mensagem: "A foto do evento é obrigatória.",
+      });
+    }
+
     const evento = await Evento.create({
       titulo,
       dataHora: data,
       localizacao,
       descricao,
+      foto: `/uploads/${req.file.filename}`,
     });
 
     return res.status(201).json({
@@ -47,6 +55,7 @@ export async function criarEvento(
     });
   }
 }
+
 
 export async function listarEventos(
   req: Request,
