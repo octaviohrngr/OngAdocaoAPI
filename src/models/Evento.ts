@@ -1,40 +1,38 @@
-import mongoose, { Document, Schema } from "mongoose";
 
-export interface IEventoDocument extends Document {
+import mongoose, { Schema, Document } from "mongoose";
+
+export interface IEvento extends Document {
   titulo: string;
   dataHora: Date;
   localizacao: string;
   descricao: string;
+  foto?: string;
 }
 
-const EventoSchema = new Schema<IEventoDocument>(
+const EventoSchema = new Schema<IEvento>(
   {
     titulo: {
       type: String,
       required: true,
-      trim: true,
     },
-
     dataHora: {
       type: Date,
       required: true,
     },
-
     localizacao: {
       type: String,
       required: true,
-      trim: true,
     },
-
     descricao: {
       type: String,
       required: true,
-      trim: true,
+    },
+    foto: {
+      type: String,
+      default: "",
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-export default mongoose.model<IEventoDocument>("Evento", EventoSchema);
+export default mongoose.model<IEvento>("Evento", EventoSchema);
