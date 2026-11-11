@@ -26,23 +26,23 @@ router.post(
 
 router.get(
   "/",
-  authMiddleware,
+  
   listarEventos
 );
 
 
 router.get(
   "/:id",
-  authMiddleware,
+  
   buscarEvento
 );
 
 
 router.put(
   "/:id",
-  uploadEvento.single("foto"),
   authMiddleware,
   adminMiddleware,
+  uploadEvento.single("foto"),
   atualizarEvento
 );
 

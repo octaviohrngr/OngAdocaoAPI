@@ -2,6 +2,7 @@ import mongoose, {Document} from "mongoose";
 
 export interface IFormularioDocument extends Document {
     usuarioId: mongoose.Types.ObjectId;
+    animalId: mongoose.Types.ObjectId;
     nome: string;
     email: string;
     telefone: string;

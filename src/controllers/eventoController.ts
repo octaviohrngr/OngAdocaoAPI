@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import Evento from "../models/Evento";
+import fs from "fs";
+import path from "path";
 
 
 
@@ -160,6 +162,7 @@ export async function atualizarEvento(
   }
 }
 
+
 export async function excluirEvento(
   req: Request,
   res: Response
@@ -167,6 +170,7 @@ export async function excluirEvento(
   try {
     const { id } = req.params;
 
+    
     const evento = await Evento.findById(id);
 
     if (!evento) {
@@ -175,11 +179,28 @@ export async function excluirEvento(
       });
     }
 
+    
+    const nomeFoto = evento.foto;
+
+   
     await Evento.findByIdAndDelete(id);
 
+    
+    if (nomeFoto) {
+      const caminhoFoto = path.resolve(
+        "uploads",
+        path.basename(nomeFoto)
+      );
+
+      if (fs.existsSync(caminhoFoto)) {
+        fs.unlinkSync(caminhoFoto);
+      }
+    }
+
     return res.status(200).json({
-      mensagem: "Evento excluído com sucesso.",
+      mensagem: "Evento e foto excluídos com sucesso.",
     });
+
   } catch (error) {
     console.error(error);
 

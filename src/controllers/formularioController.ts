@@ -1,6 +1,8 @@
 import { Response } from "express";
 import Formulario from "../models/Formulario";
 import { AuthRequest } from "../middlewares/authMiddleware";
+import mongoose from "mongoose";
+
 
 
 export async function criarFormulario(
@@ -15,6 +17,7 @@ export async function criarFormulario(
     }
 
     const {
+      animalId,
       nome,
       email,
       telefone,
@@ -24,47 +27,51 @@ export async function criarFormulario(
       aceitarTermos,
     } = req.body;
 
-    
     if (
-      !nome ||
-      !email ||
-      !telefone ||
-      !tipoMoradia ||
-      !tempoMedioSozinho ||
-      !mensagem ||
-      aceitarTermos === undefined
+      !animalId ||
+      !nome?.trim() ||
+      !email?.trim() ||
+      !telefone?.trim() ||
+      !tipoMoradia?.trim() ||
+      !tempoMedioSozinho?.trim()
     ) {
       return res.status(400).json({
-        mensagem: "Todos os campos são obrigatórios.",
+        mensagem: "Preencha todos os campos obrigatórios.",
       });
     }
 
-    
+    if (!mongoose.isValidObjectId(animalId)) {
+      return res.status(400).json({
+        mensagem: "Animal inválido.",
+      });
+    }
+
     if (aceitarTermos !== true) {
       return res.status(400).json({
         mensagem: "É necessário aceitar os termos.",
       });
     }
 
-    // Verificar se o usuário já possui um formulário
     const formularioExistente = await Formulario.findOne({
       usuarioId: req.usuario.id,
     });
 
     if (formularioExistente) {
       return res.status(400).json({
-        mensagem: "Este usuário já possui um formulário cadastrado.",
+        mensagem:
+          "Este usuário já possui um formulário cadastrado.",
       });
     }
 
     const formulario = await Formulario.create({
       usuarioId: req.usuario.id,
-      nome,
-      email,
-      telefone,
+      animalId,
+      nome: nome.trim(),
+      email: email.trim(),
+      telefone: telefone.trim(),
       tipoMoradia,
       tempoMedioSozinho,
-      mensagem,
+      mensagem: mensagem?.trim() ?? "",
       aceitarTermos,
     });
 
@@ -80,7 +87,6 @@ export async function criarFormulario(
     });
   }
 }
-
 
 export async function listarFormularios(
   req: AuthRequest,
