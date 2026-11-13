@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import Animal from "../models/Animal";
+import fs from "fs";
+import path from "path";
 
 
 export async function criarAnimal(
@@ -104,7 +106,7 @@ export async function listarAnimais(
 ): Promise<Response> {
   try {
     const animais = await Animal.find();
-
+    console.log("ANIMAIS", animais);
     return res.status(200).json(animais);
 
   } catch (error) {
@@ -266,6 +268,7 @@ export async function atualizarAnimal(
 
 
 
+
 export async function excluirAnimal(
   req: Request,
   res: Response
@@ -273,6 +276,7 @@ export async function excluirAnimal(
   try {
     const { id } = req.params;
 
+    
     const animal = await Animal.findById(id);
 
     if (!animal) {
@@ -281,11 +285,36 @@ export async function excluirAnimal(
       });
     }
 
+    
+    const fotos = [animal.foto1, animal.foto2];
+
+    
     await Animal.findByIdAndDelete(id);
 
+    
+    for (const foto of fotos) {
+      if (foto) {
+        const caminhoFoto = path.resolve(
+          "uploads",
+          path.basename(foto)
+        );
+
+        try {
+          await fs.promises.unlink(caminhoFoto);
+        } catch (error: any) {
+          
+          if (error.code !== "ENOENT") {
+            console.error(
+              `Erro ao excluir a foto ${foto}:`,
+              error
+            );
+          }
+        }
+      }
+    }
+
     return res.status(200).json({
-      mensagem:
-        "Animal excluído com sucesso.",
+      mensagem: "Animal excluído com sucesso.",
     });
 
   } catch (error) {

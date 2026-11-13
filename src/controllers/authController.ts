@@ -8,7 +8,10 @@ export async function login(
   res: Response
 ): Promise<Response> {
   try {
-    const { email, senha } = req.body;
+    const { email, senha } = req.body || {};
+
+    console.log("EMAIL", email);
+    console.log("EMAIL", senha);
 
     if (!email || !senha) {
       return res.status(400).json({
@@ -17,6 +20,7 @@ export async function login(
     }
 
     const usuario = await User.findOne({ email });
+    console.log("USER", usuario);
 
     if (!usuario) {
       return res.status(401).json({

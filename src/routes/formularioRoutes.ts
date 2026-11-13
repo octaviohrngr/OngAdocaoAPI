@@ -1,3 +1,4 @@
+
 import { Router } from "express";
 
 import {
@@ -6,13 +7,13 @@ import {
   buscarFormulario,
   atualizarFormulario,
   excluirFormulario,
+  atualizarStatusFormulario,
 } from "../controllers/formularioController";
 
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { adminMiddleware } from "../middlewares/adminMiddleware";
 
 const router = Router();
-
 
 router.post(
   "/",
@@ -24,26 +25,27 @@ router.post(
 router.get(
   "/",
   authMiddleware,
-  adminMiddleware,
   listarFormularios
 );
-
 
 router.get(
   "/:id",
   authMiddleware,
-  adminMiddleware,
   buscarFormulario
 );
-
 
 router.put(
   "/:id",
   authMiddleware,
-  adminMiddleware,
   atualizarFormulario
 );
 
+router.patch(
+  "/:id/status",
+  authMiddleware,
+  adminMiddleware,
+  atualizarStatusFormulario
+);
 
 router.delete(
   "/:id",

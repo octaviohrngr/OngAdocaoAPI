@@ -139,6 +139,23 @@ export async function atualizarUsuario(
   try {
     const { id } = req.params;
 
+    const usuarioAutenticado = (req as any).usuario;
+
+    if (!usuarioAutenticado) {
+      return res.status(401).json({
+        mensagem: "Usuário não autenticado.",
+      });
+    }
+
+    if (
+      usuarioAutenticado.id !== id &&
+      usuarioAutenticado.tipo !== "admin"
+    ) {
+      return res.status(403).json({
+        mensagem: "Você só pode editar seus próprios dados.",
+      });
+    }
+
     const usuario = await User.findById(id);
 
     if (!usuario) {
