@@ -1,6 +1,7 @@
 import app from "./app";
 import { connectDatabase } from "./config/database";
 import { createAdmin } from "./config/createAdmin";
+import "dotenv/config";
 
 const PORT = process.env.PORT || 3000;
 
@@ -9,8 +10,14 @@ async function startServer() {
     await connectDatabase();
     await createAdmin();
 
+    console.log("Email configurado:", process.env.EMAIL_USUARIO);
 
-    app.listen(PORT, () => {
+    console.log(
+      "Senha de app configurada:",
+      Boolean(process.env.EMAIL_SENHA)
+    );
+    
+    app.listen(3000, "0.0.0.0", () => {
       console.log(`Servidor rodando na porta ${PORT}`);
     });
   } catch (error) {

@@ -106,7 +106,7 @@ export async function listarAnimais(
 ): Promise<Response> {
   try {
     const animais = await Animal.find();
-
+    console.log("ANIMAIS", animais);
     return res.status(200).json(animais);
 
   } catch (error) {

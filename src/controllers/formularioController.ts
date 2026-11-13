@@ -54,12 +54,12 @@ export async function criarFormulario(
 
     const formularioExistente = await Formulario.findOne({
       usuarioId: req.usuario.id,
+      animalId,
     });
 
     if (formularioExistente) {
-      return res.status(400).json({
-        mensagem:
-          "Este usuário já possui um formulário cadastrado.",
+      return res.status(409).json({
+        mensagem: "Você já enviou uma solicitação para este animal.",
       });
     }
 
@@ -88,16 +88,31 @@ export async function criarFormulario(
   }
 }
 
+
 export async function listarFormularios(
   req: AuthRequest,
   res: Response
 ): Promise<Response> {
   try {
-    const formularios = await Formulario.find()
+    if (!req.usuario) {
+      return res.status(401).json({
+        mensagem: "Usuário não autenticado.",
+      });
+    }
+
+    const { id, tipo } = req.usuario;
+
+    const filtro = tipo === "admin"
+      ? {}
+      : { usuarioId: id };
+
+    const formularios = await Formulario.find(filtro)
       .populate("usuarioId", "nome email telefone tipo")
+      .populate("animalId", "nome especie raca foto1 foto2")
       .sort({ createdAt: -1 });
 
     return res.status(200).json(formularios);
+
   } catch (error) {
     console.error(error);
 
@@ -107,18 +122,35 @@ export async function listarFormularios(
   }
 }
 
+
 // BUSCAR FORMULÁRIO POR ID
+
 export async function buscarFormulario(
   req: AuthRequest,
   res: Response
 ): Promise<Response> {
   try {
+    if (!req.usuario) {
+      return res.status(401).json({
+        mensagem: "Usuário não autenticado.",
+      });
+    }
+
     const { id } = req.params;
 
-    const formulario = await Formulario.findById(id).populate(
-      "usuarioId",
-      "nome email telefone tipo"
-    );
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        mensagem: "ID do formulário inválido.",
+      });
+    }
+
+    const filtro = req.usuario.tipo === "admin"
+      ? { _id: id }
+      : { _id: id, usuarioId: req.usuario.id };
+
+    const formulario = await Formulario.findOne(filtro)
+      .populate("usuarioId", "nome email telefone tipo")
+      .populate("animalId", "nome especie raca foto1 foto2");
 
     if (!formulario) {
       return res.status(404).json({
@@ -127,6 +159,7 @@ export async function buscarFormulario(
     }
 
     return res.status(200).json(formulario);
+
   } catch (error) {
     console.error(error);
 
@@ -136,22 +169,45 @@ export async function buscarFormulario(
   }
 }
 
+
 // ATUALIZAR FORMULÁRIO
 export async function atualizarFormulario(
   req: AuthRequest,
   res: Response
 ): Promise<Response> {
   try {
-    const { id } = req.params;
-
-    const formulario = await Formulario.findById(id);
-
-    if (!formulario) {
-      return res.status(404).json({
-        mensagem: "Formulário não encontrado.",
+    if (!req.usuario) {
+      return res.status(401).json({
+        mensagem: "Usuário não autenticado.",
       });
     }
 
+    const { id } = req.params;
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        mensagem: "ID do formulário inválido.",
+      });
+    }
+
+    const filtro = req.usuario.tipo === "admin"
+      ? { _id: id }
+      : { _id: id, usuarioId: req.usuario.id };
+
+    const formulario = await Formulario.findOne(filtro);
+        if (!formulario) {
+          return res.status(404).json({
+            mensagem: "Formulário não encontrado.",
+          });
+        }
+
+    if (formulario.status !== "em_analise") {
+      return res.status(403).json({
+        mensagem:
+          "Esta solicitação foi finalizada e não pode mais ser editada.",
+      });
+    }
+    
     const {
       nome,
       email,
@@ -237,6 +293,68 @@ export async function excluirFormulario(
 
     return res.status(500).json({
       mensagem: "Erro ao excluir formulário.",
+    });
+  }
+}
+
+
+export async function atualizarStatusFormulario(
+  req: AuthRequest,
+  res: Response
+): Promise<Response> {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const statusPermitidos = [
+      "em_analise",
+      "finalizado_ok",
+      "negado",
+    ];
+
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(400).json({
+        mensagem: "ID do formulário inválido.",
+      });
+    }
+
+    if (!statusPermitidos.includes(status)) {
+      return res.status(400).json({
+        mensagem: "Status inválido.",
+      });
+    }
+
+    // Só permite finalizar solicitações em análise.
+    const formulario = await Formulario.findOneAndUpdate(
+      {
+        _id: id,
+        status: "em_analise",
+      },
+      {
+        $set: { status },
+      },
+      {
+        returnDocument: "after",
+        runValidators: true,
+      }
+    );
+
+    if (!formulario) {
+      return res.status(409).json({
+        mensagem:
+          "Solicitação não encontrada ou já finalizada.",
+      });
+    }
+
+    return res.status(200).json({
+      mensagem: "Status atualizado com sucesso.",
+      formulario,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      mensagem: "Erro ao atualizar status.",
     });
   }
 }

@@ -9,5 +9,6 @@ export interface IFormularioDocument extends Document {
     tipoMoradia: string;
     tempoMedioSozinho: string;
     mensagem: string;
+    status: "em_analise" | "finalizado_ok" | "negado";
     aceitarTermos: boolean;
 }

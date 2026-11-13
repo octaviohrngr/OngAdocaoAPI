@@ -56,11 +56,24 @@ const FormularioSchema = new Schema<IFormularioDocument>(
       type: Boolean,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["em_analise", "finalizado_ok", "negado"],
+      default: "em_analise",
+      required: true,
+    },
   },
   {
     timestamps: true,
   }
 );
+
+
+FormularioSchema.index(
+  { usuarioId: 1, animalId: 1 },
+  { unique: true }
+);
+
 
 export default mongoose.model<IFormularioDocument>(
   "Formulario",
