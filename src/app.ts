@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes";
 import animalRoutes from "./routes/animalRoutes"; 
 import eventoRoutes from "./routes/eventoRoutes";
 import formularioRoutes from "./routes/formularioRoutes";
+import notificacaoRoutes from "./routes/notificacaoRoutes";
 
 const app = express();
 
@@ -37,6 +38,8 @@ app.use("/animais", animalRoutes);
 app.use("/eventos", eventoRoutes);
 
 app.use("/formularios", formularioRoutes);
+
+app.use("/notificacoes", notificacaoRoutes);
 
 
 export default app;

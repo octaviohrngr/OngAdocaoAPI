@@ -48,10 +48,10 @@ const FormularioSchema = new Schema<IFormularioDocument>(
 
     mensagem: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
-    },
-
+      default: "",
+    },   
     aceitarTermos: {
       type: Boolean,
       required: true,
