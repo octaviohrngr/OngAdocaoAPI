@@ -4,6 +4,8 @@ import { AuthRequest } from "../middlewares/authMiddleware";
 import mongoose from "mongoose";
 import Notificacao from "../models/Notificacao";
 import User from "../models/User";
+import Animal from "../models/Animal";
+
 
 
 
@@ -54,6 +56,7 @@ export async function criarFormulario(
       });
     }
 
+
     const formularioExistente = await Formulario.findOne({
       usuarioId: req.usuario.id,
       animalId,
@@ -76,6 +79,18 @@ export async function criarFormulario(
       mensagem: mensagem?.trim() ?? "",
       aceitarTermos,
     });
+
+    await Animal.findByIdAndUpdate(
+      animalId,
+      {
+        $set: {
+          status: "em_processo",
+        },
+      },
+      {
+        runValidators: true,
+      }
+    );
 
 
     try {
@@ -404,10 +419,7 @@ export async function atualizarStatusFormulario(
           lida: false,
         });
 
-        console.log(
-          "Notificação criada para o adotante:",
-          formulario.usuarioId
-        );
+        
       } catch (error) {
         console.error(
           "Erro ao criar notificação do adotante:",
@@ -417,6 +429,13 @@ export async function atualizarStatusFormulario(
     }
 
 
+
+    if (status === "finalizado_ok") {
+      await Animal.findByIdAndUpdate(
+        formulario.animalId,
+        { $set: { status: "adotado" } }
+      );
+    }
     return res.status(200).json({
       mensagem: "Status atualizado com sucesso.",
       formulario,

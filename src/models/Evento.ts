@@ -1,13 +1,7 @@
 
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-export interface IEvento extends Document {
-  titulo: string;
-  dataHora: Date;
-  localizacao: string;
-  descricao: string;
-  foto?: string;
-}
+import { IEvento } from "../interfaces/IEvento";
 
 const EventoSchema = new Schema<IEvento>(
   {

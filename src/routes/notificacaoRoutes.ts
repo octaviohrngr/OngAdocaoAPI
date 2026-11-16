@@ -33,6 +33,7 @@ router.patch(
 
 router.patch(
   "/solicitacoes/lidas",
+    authMiddleware,
   marcarSolicitacoesComoLidas
 );
 
