@@ -1,5 +1,14 @@
-node_modules/
-dist/
+# Variáveis de ambiente
 .env
 .env.*
 !.env.example
+
+# Dependências e compilação
+node_modules/
+dist/
+
+# Arquivos enviados
+uploads/
+
+# Logs
+*.log

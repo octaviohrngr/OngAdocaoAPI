@@ -2,6 +2,10 @@ import { Response } from "express";
 import Formulario from "../models/Formulario";
 import { AuthRequest } from "../middlewares/authMiddleware";
 import mongoose from "mongoose";
+import Notificacao from "../models/Notificacao";
+import User from "../models/User";
+import Animal from "../models/Animal";
+
 
 
 
@@ -52,6 +56,7 @@ export async function criarFormulario(
       });
     }
 
+
     const formularioExistente = await Formulario.findOne({
       usuarioId: req.usuario.id,
       animalId,
@@ -74,6 +79,50 @@ export async function criarFormulario(
       mensagem: mensagem?.trim() ?? "",
       aceitarTermos,
     });
+
+    await Animal.findByIdAndUpdate(
+      animalId,
+      {
+        $set: {
+          status: "em_processo",
+        },
+      },
+      {
+        runValidators: true,
+      }
+    );
+
+
+    try {
+
+      const administradores = await User.find({
+        tipo: "admin",
+      }).select("_id");
+
+      if (administradores.length > 0) {
+        await Notificacao.insertMany(
+          administradores.map((admin) => ({
+            usuarioId: admin._id,
+            formularioId: formulario._id,
+            titulo: "Nova solicitação de adoção",
+            mensagem: `${nome.trim()} enviou uma nova solicitação de adoção.`,
+            tipo: "nova_solicitacao",
+            lida: false,
+          }))
+        );
+      }
+
+      console.log(
+        `Notificações criadas para ${administradores.length} administrador(es).`
+      );
+    } catch (error) {
+      console.error(
+        "Erro ao criar notificações dos administradores:",
+        error
+      );
+    }
+
+
 
     return res.status(201).json({
       mensagem: "Formulário enviado com sucesso.",
@@ -110,6 +159,9 @@ export async function listarFormularios(
       .populate("usuarioId", "nome email telefone tipo")
       .populate("animalId", "nome especie raca foto1 foto2")
       .sort({ createdAt: -1 });
+
+    console.log("ANIMAL POPULADO:",formularios.map(f => f.animalId));
+
 
     return res.status(200).json(formularios);
 
@@ -157,6 +209,7 @@ export async function buscarFormulario(
         mensagem: "Formulário não encontrado.",
       });
     }
+
 
     return res.status(200).json(formulario);
 
@@ -346,6 +399,43 @@ export async function atualizarStatusFormulario(
       });
     }
 
+
+    if (status === "finalizado_ok" || status === "negado") {
+      try {
+        const aprovado = status === "finalizado_ok";
+
+        await Notificacao.create({
+          usuarioId: formulario.usuarioId,
+          formularioId: formulario._id,
+          titulo: aprovado
+            ? "Solicitação de adoção aprovada"
+            : "Solicitação de adoção negada",
+          mensagem: aprovado
+            ? "Sua solicitação de adoção foi aprovada pela ONG."
+            : "Sua solicitação de adoção foi analisada e não foi aprovada.",
+          tipo: aprovado
+            ? "adocao_aprovada"
+            : "adocao_negada",
+          lida: false,
+        });
+
+        
+      } catch (error) {
+        console.error(
+          "Erro ao criar notificação do adotante:",
+          error
+        );
+      }
+    }
+
+
+
+    if (status === "finalizado_ok") {
+      await Animal.findByIdAndUpdate(
+        formulario.animalId,
+        { $set: { status: "adotado" } }
+      );
+    }
     return res.status(200).json({
       mensagem: "Status atualizado com sucesso.",
       formulario,

@@ -6,6 +6,9 @@ import authRoutes from "./routes/authRoutes";
 import animalRoutes from "./routes/animalRoutes"; 
 import eventoRoutes from "./routes/eventoRoutes";
 import formularioRoutes from "./routes/formularioRoutes";
+import notificacaoRoutes from "./routes/notificacaoRoutes";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./config/swagger";
 
 const app = express();
 
@@ -19,6 +22,11 @@ app.get("/", (req, res) => {
   });
 });
 
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
 
 app.use("/auth", authRoutes);
 
@@ -37,6 +45,8 @@ app.use("/animais", animalRoutes);
 app.use("/eventos", eventoRoutes);
 
 app.use("/formularios", formularioRoutes);
+
+app.use("/notificacoes", notificacaoRoutes);
 
 
 export default app;

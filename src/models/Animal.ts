@@ -1,18 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { IAnimal } from "../interfaces/IAnimal";
 
-export interface IAnimalDocument extends Document {
-  nome: string;
-  especie: "gato" | "cachorro";
-  raca: string;
-  idadeEstimada: number;
-  porte: "pequeno" | "médio" | "grande";
-  foto1: string;
-  foto2: string;
-  temperamento: string;
-  historicoVacina: string;
-}
-
-const AnimalSchema = new Schema<IAnimalDocument>(
+const AnimalSchema = new Schema<IAnimal>(
   {
     nome: {
       type: String,
@@ -54,6 +43,13 @@ const AnimalSchema = new Schema<IAnimalDocument>(
       required: true,
     },
 
+    status: {
+      type: String,
+      enum: ["disponivel", "em_processo", "adotado"],
+      default: "disponivel",
+      required: true,
+    },
+
     temperamento: {
       type: String,
       required: true,
@@ -71,7 +67,7 @@ const AnimalSchema = new Schema<IAnimalDocument>(
   }
 );
 
-export default mongoose.model<IAnimalDocument>(
+export default mongoose.model<IAnimal>(
   "Animal",
   AnimalSchema
 );
